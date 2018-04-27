@@ -30,6 +30,7 @@
     "jshint": "^2.9.3"
   },
   "dependencies": {
+    "gulp-babel": "^7.0.1",
     "gulp-sass": "^4.0.1"
   }
 }
