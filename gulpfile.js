@@ -1,27 +1,41 @@
-var gulp = require('gulp'),
-	changed = require('gulp-changed'),
-	sass = require('gulp-sass'),
-	cssmin = require('gulp-clean-css'),					//压缩css
-	autoprefixer = require('gulp-autoprefixer'),		//添加浏览器前缀
-	clean = require('gulp-clean'),						//清理文目标文件夹
-	csso = require('gulp-csso'),						//合并css属性
-	csslint = require('gulp-csslint'),					//css语法检查
-	csscomb = require('gulp-csscomb'),					//css 样式表的各属性的顺序
-	cache = require('gulp-cache')
-;
+var gulp         = require('gulp'),
+    changed      = require('gulp-changed'),
+    rename       = require('gulp-rename'),
+    babel        = require('gulp-babel'),
+    sass         = require('gulp-sass'),
+    cssmin       = require('gulp-clean-css'),					//压缩css
+    autoprefixer = require('gulp-autoprefixer'),		//添加浏览器前缀
+    clean        = require('gulp-clean'),						//清理文目标文件夹
+    csso         = require('gulp-csso'),						//合并css属性
+    csslint      = require('gulp-csslint'),					//css语法检查
+    csscomb      = require('gulp-csscomb'),					//css 样式表的各属性的顺序
+    cache        = require('gulp-cache')
+    ;
 
 var target = 'D:/apache-tomcat-8.0.43/webapps/mkh1.0/system/';
-	//target = 'F:/test/';
-var srcFile = 'D:/workspace/mkh1.0/WebRoot/system/',
-	srcFileView = srcFile+'view/**/*.html',
-	srcFileViews2 = srcFile+'views2/**/*.html',
-	srcFileJs = srcFile+'view/**/js/*.js',
-	srcFileCss = srcFile+'view/**/css/*.css',
-	srcFileSassCommon = srcFile+'sass2/common/**/*.scss',
-	srcFileSassController = srcFile+'sass2/controller/**/*.scss',
-	srcFileSassWap = srcFile+'sass2/wap/**/*.scss',
-	srcFileImg = srcFile+'css/img/**/*.{jpg,png}'
+
+var srcFile               = 'D:/workspace/mkh1.0/WebRoot/system/',
+    srcFileView           = srcFile+'view/**/*.html',
+    srcFileViews2         = srcFile+'views2/**/*.html',
+    srcFileJs             = srcFile+'view/**/js/*.js',
+    srcFileJs2            = srcFile+'view/**/js2/*.js',
+    srcFileCss            = srcFile+'view/**/css/*.css',
+    srcFileSassCommon     = srcFile+'sass2/common/**/*.scss',
+    srcFileSassController = srcFile+'sass2/controller/**/*.scss',
+    srcFileSassWap        = srcFile+'sass2/wap/**/*.scss',
+    srcFileImg            = srcFile+'css/img/**/*.{jpg,png}'
 	;
+// es6 -> es3
+gulp.task('compileEs6', function() {
+    gulp.src(srcFileJs2)
+      .pipe(changed(target+'view'))
+      .pipe(babel())
+      .pipe(rename(function (path) {
+        path.dirname = path.dirname.replace('js2', 'js')
+      }))
+      .pipe(gulp.dest(srcFile+'view'));
+
+});
 /*由于外部编辑器修改后，需要七八秒eclipse才能监听到文件，因此直接复制文件到eclipse发布的目录*/
 gulp.task('copyViews', function() {
     gulp.src(srcFileView)
@@ -90,7 +104,8 @@ gulp.task('sassWap',function () {
 gulp.task("autowatch",function(){
 	gulp.watch([srcFileView],['copyViews']);		
 	gulp.watch([srcFileViews2],['copyViews2']);	
-	gulp.watch([srcFileJs],['copyJs']);	
+	gulp.watch([srcFileJs],['copyJs']);
+    gulp.watch([srcFileJs2],['compileEs6']); 
 	//gulp.watch([srcFileCss],['copyCss']);	
 	gulp.watch([srcFileSassCommon],['sassCommon']);	
 	gulp.watch([srcFileSassController],['sassController']);	
