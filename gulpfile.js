@@ -11,12 +11,21 @@ var gulp         = require('gulp'),
     csscomb      = require('gulp-csscomb'),					// css 样式表的各属性的顺序
     cache        = require('gulp-cache')
     browserSync  = require('browser-sync').create() //  热更新
+    plumber      = require('gulp-plumber'),         // 抛出错误
+    notify       = require('gulp-notify')           // 弹出错误信息
     ;
 
-var target = 'D:/apache-tomcat-8.0.43/webapps/mkh1.0/system/';
 
-var srcFile     = 'D:/workspace/mkh1.0/WebRoot/system/',
-    srcFileView = srcFile+'view/**/*.html',
+
+
+
+
+// var target = 'D:/apache-tomcat-8.0.43/webapps/mkh1.0/system/'; //myeclipse
+var target = 'D:/workspace/mkh2.1/target/mkh1.0/system/';
+// var srcFile = 'D:/workspace/mkh1.0/WebRoot/system/';
+var srcFile = 'D:/workspace/mkh2.1/src/main/webapp/system/';
+
+var srcFileView = srcFile+'view/**/*.html',
     srcFileJs   = srcFile+'view/**/js/*.js',
     srcFileJs2  = srcFile+'view/**/js2/*.js',
     srcFileCss  = srcFile+'view/**/css/*.css',
@@ -39,19 +48,27 @@ gulp.task('copyViews', function() {
 gulp.task('compileEs6', function() {
     gulp.src(srcFileJs2)
       .pipe(changed(target+'view'), {hasChanged: changed.compareSha1Digest})
-      .pipe(babel({
-        presets: ['es2015']
+      .pipe(plumber({ //plumber触发错误提示
+        errorHandler: notify.onError("Error: <%= error.message %>")
       }))
+      .pipe(babel({
+        presets: ['es2015'],
+        // plugins: ['transform-object-assign']
+      }))
+      .on('error', (e) => {
+         console.log('>>> ERROR', e);
+      })
       .pipe(rename(function (path) {
         path.dirname = path.dirname.replace('js2', 'js')
       }))
-      .pipe(gulp.dest(srcFile+'view'));
+      .pipe(gulp.dest(srcFile+'view'))
+      .pipe(gulp.dest(target+'view'));
 });
 
 // js
 gulp.task('copyJs', function() {
     gulp.src(srcFileJs)
-      .pipe(changed(srcFileJs), {hasChanged: changed.compareSha1Digest})
+      .pipe(changed(srcFileJs))
       .pipe(gulp.dest(target+'view'))
       .pipe(browserSync.reload({stream:true}));
 });
@@ -59,8 +76,8 @@ gulp.task('copyJs', function() {
 // css
 gulp.task('copyCss', function() {
     gulp.src(srcFileCss)
-      .pipe(changed(srcFileCss), {hasChanged: changed.compareSha1Digest})
-      .pipe(gulp.dest(target+'css'))
+      .pipe(changed(srcFileCss))
+      .pipe(gulp.dest(target+'view'))
       .pipe(browserSync.reload({stream:true}));
 });
 
@@ -83,14 +100,14 @@ gulp.task('sassCommon',function () {
       // .pipe(csslint())
       .pipe(rename(function (path) {
         path.dirname = path.dirname.replace('sass', 'css')
-        console.log(path);
       }))
       .pipe(gulp.dest(srcFile+'view'))
 });
 
 gulp.task("autowatch",function(){
   browserSync.init({
-      proxy:'localhost:8080', // 设置本地服务器的地址
+      //proxy:'localhost:8080', // 设置本地服务器的地址
+      proxy: 'localhost'
   });
 	gulp.watch([srcFileView],['copyViews']);		
 	gulp.watch([srcFileJs],['copyJs']);
