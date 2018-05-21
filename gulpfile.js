@@ -12,7 +12,8 @@ var gulp         = require('gulp'),
     cache        = require('gulp-cache')
     browserSync  = require('browser-sync').create() //  热更新
     plumber      = require('gulp-plumber'),         // 抛出错误
-    notify       = require('gulp-notify')           // 弹出错误信息
+    notify       = require('gulp-notify'),           // 弹出错误信息
+    watch        = require('gulp-watch')            // 在新建及删除文件的情况下依然可以监听
     ;
 
 
@@ -67,8 +68,9 @@ gulp.task('compileEs6', function() {
 
 // js
 gulp.task('copyJs', function() {
+    console.log(target+'view')
     gulp.src(srcFileJs)
-      .pipe(changed(srcFileJs))
+      .pipe(changed(target+'view'), {hasChanged: changed.compareSha1Digest})
       .pipe(gulp.dest(target+'view'))
       .pipe(browserSync.reload({stream:true}));
 });
@@ -76,7 +78,7 @@ gulp.task('copyJs', function() {
 // css
 gulp.task('copyCss', function() {
     gulp.src(srcFileCss)
-      .pipe(changed(srcFileCss))
+      .pipe(changed(target+'view'), {hasChanged: changed.compareSha1Digest})
       .pipe(gulp.dest(target+'view'))
       .pipe(browserSync.reload({stream:true}));
 });
@@ -84,7 +86,7 @@ gulp.task('copyCss', function() {
 // img
 gulp.task('copyImg', function() {
     gulp.src(srcFileImg)
-      .pipe(changed(srcFileImg))
+      .pipe(changed(target+'view'), {hasChanged: changed.compareSha1Digest})
       .pipe(gulp.dest(target+'css/img'))
       .pipe(browserSync.reload({stream:true}));
 });
@@ -92,7 +94,7 @@ gulp.task('copyImg', function() {
 // sass
 gulp.task('sassCommon',function () {      
     gulp.src(srcFileSass)
-      .pipe(changed(srcFileSass), {hasChanged: changed.compareSha1Digest})
+      .pipe(changed(target+'view'), {hasChanged: changed.compareSha1Digest})
       .pipe(sass()).on('error', sass.logError)
       .pipe(cssmin())
       .pipe(autoprefixer())
@@ -109,12 +111,12 @@ gulp.task("autowatch",function(){
       //proxy:'localhost:8080', // 设置本地服务器的地址
       proxy: 'localhost'
   });
-	gulp.watch([srcFileView],['copyViews']);		
-	gulp.watch([srcFileJs],['copyJs']);
+  gulp.watch([srcFileView],['copyViews']);    
+  gulp.watch([srcFileJs],['copyJs']);
   gulp.watch(srcFileJs2,['compileEs6']); 
-	gulp.watch([srcFileCss],['copyCss']);	
-	gulp.watch([srcFileSass],['sassCommon']);	
-	gulp.watch([srcFileImg],['copyImg']);
+  gulp.watch([srcFileCss],['copyCss']); 
+  gulp.watch([srcFileSass],['sassCommon']); 
+  gulp.watch([srcFileImg],['copyImg']);
 });
 
 gulp.task('default',['autowatch']);//定义默认任务
